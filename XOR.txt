@@ -1,0 +1,146 @@
+MLP1:
+
+#!/usr/bin/python
+
+import numpy as np
+
+def sigmoid(x):
+	return 1.0/(1.0 + np.exp(-x))
+
+def sigmoid_der(x):
+	return x*(1.0 - x)
+
+class NN:
+    def __init__(self, inputs):
+        self.inputs = inputs
+        self.l=len(self.inputs)
+        self.li=len(self.inputs[0])
+
+        self.wi=np.random.random((self.li, self.l))
+        self.wh=np.random.random((self.l, 1))
+
+    def think(self, inp):
+        s1=sigmoid(np.dot(inp, self.wi))
+        s2=sigmoid(np.dot(s1, self.wh))
+        return s2
+
+    def train(self, inputs,outputs, it):
+        for i in range(it):
+            l0=inputs
+            l1=sigmoid(np.dot(l0, self.wi))
+            l2=sigmoid(np.dot(l1, self.wh))
+
+            l2_err=outputs - l2
+            l2_delta = np.multiply(l2_err, sigmoid_der(l2))
+
+            l1_err=np.dot(l2_delta, self.wh.T)
+            l1_delta=np.multiply(l1_err, sigmoid_der(l1))
+
+            self.wh+=np.dot(l1.T, l2_delta)
+            self.wi+=np.dot(l0.T, l1_delta)
+
+inputs=np.array([[0,0], [0,1], [1,0], [1,1] ])
+outputs=np.array([ [0], [1],[1],[0] ])
+
+n=NN(inputs)
+print(n.think(inputs))
+n.train(inputs, outputs, 10000)
+print(n.think(inputs))
+
+
+
+
+MLP2:
+
+
+# importing Python library
+import numpy as np
+
+# define Unit Step Function
+def unitStep(v):
+	if v >= 0:
+		return 1
+	else:
+		return 0
+
+# design Perceptron Model
+def perceptronModel(x, w, b):
+	v = np.dot(w, x) + b
+	y = unitStep(v)
+	return y
+
+# NOT Logic Function
+# wNOT = -1, bNOT = 0.5
+def NOT_logicFunction(x):
+	wNOT = -1
+	bNOT = 0.5
+	return perceptronModel(x, wNOT, bNOT)
+
+# AND Logic Function
+# here w1 = wAND1 = 1, 
+# w2 = wAND2 = 1, bAND = -1.5
+def AND_logicFunction(x):
+	w = np.array([1, 1])
+	bAND = -1.5
+	return perceptronModel(x, w, bAND)
+
+# OR Logic Function
+# w1 = 1, w2 = 1, bOR = -0.5
+def OR_logicFunction(x):
+	w = np.array([1, 1])
+	bOR = -0.5
+	return perceptronModel(x, w, bOR)
+
+# XOR Logic Function
+# with AND, OR and NOT 
+# function calls in sequence
+def XOR_logicFunction(x):
+	y1 = AND_logicFunction(x)
+	y2 = OR_logicFunction(x)
+	y3 = NOT_logicFunction(y1)
+	final_x = np.array([y2, y3])
+	finalOutput = AND_logicFunction(final_x)
+	return finalOutput
+
+# testing the Perceptron Model
+test1 = np.array([0, 1])
+test2 = np.array([1, 1])
+test3 = np.array([0, 0])
+test4 = np.array([1, 0])
+
+print("XOR({}, {}) = {}".format(0, 1, XOR_logicFunction(test1)))
+print("XOR({}, {}) = {}".format(1, 1, XOR_logicFunction(test2)))
+print("XOR({}, {}) = {}".format(0, 0, XOR_logicFunction(test3)))
+print("XOR({}, {}) = {}".format(1, 0, XOR_logicFunction(test4)))
+
+
+
+
+MLP3:
+
+import numpy as np
+from tensorflow.keras.models import Sequential
+from tensorflow.keras.layers import Dense
+
+# Input and Output data for XOR gate
+X = np.array([[0, 0], [0, 1], [1, 0], [1, 1]])
+y = np.array([[0], [1], [1], [0]])
+
+# Define the model
+model = Sequential()
+model.add(Dense(4, input_dim=2, activation='relu'))  # Hidden layer with 4 neurons
+model.add(Dense(1, activation='sigmoid'))  # Output layer
+
+# Compile the model
+model.compile(loss='binary_crossentropy', optimizer='adam', metrics=['accuracy'])
+
+# Train the model
+model.fit(X, y, epochs=1000, verbose=0)
+
+# Test the model
+predictions = model.predict(X)
+rounded_predictions = np.round(predictions)
+
+# Display predictions
+for i in range(len(X)):
+    print(f"Input: {X[i]}, Predicted Output: {rounded_predictions[i]}, True Output: {y[i]}")
